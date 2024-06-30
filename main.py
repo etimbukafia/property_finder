@@ -7,8 +7,10 @@ import urllib,io,json
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
+import re
 import logging
 load_dotenv()
+
 
 password = os.environ['PASSWORD']
 username = os.environ['USERNAME']
@@ -20,7 +22,7 @@ else:
     try:
         client = MongoClient(f"mongodb+srv://{username}:{password}@realestatecluster.kypuqxb.mongodb.net/?retryWrites=true&w=majority&appName=realEstateCluster")
         db = client['listings']
-        collection = db['austin']
+        collection = db['austin_reduced']
     except Exception as e:
         st.error(f"Failed to connect to MongoDB: {e}")
 
@@ -29,34 +31,38 @@ else:
     user_input = st.text_area("enter your description here")
 
 
-    with io.open("descriptions.txt","r",encoding="utf-8")as f1:
-        sample=f1.read()
+    with io.open("descriptions.txt","r",encoding="utf-8")   as f1:
+        descriptions=f1.read()
+        print(descriptions)
     
 
     with io.open("prompt.txt", "r", encoding="utf-8") as f:
         prompt = f.read()
 
-    query = PromptTemplate(
+    query_with_prompt = PromptTemplate(
         template=prompt,
-        input_variables=["question", "sample"]
+        input_variables=["question", "descriptions"]
     )
 
-    llmchain = LLMChain(llm=llm, prompt=query, verbose=True)
+    llmchain = LLMChain(llm=llm, prompt=query_with_prompt, verbose=True)
 
     if user_input:
-        button = st.button("Submit")
-        if button:
+        if st.button("Submit"):
             try:
                 # Invoke the LLM Chain
                 response = llmchain.invoke({
                     "question": user_input,
-                    "sample": sample
+                    "sample": descriptions
                 })
-                query = json.loads(response["text"])
-                results = collection.aggregate(f'({query})')
 
-                print(f"Generated Query: {query}")
-                print(f"Generated results: {results}")
+
+                query = json.loads(response["text"])
+                print((f"Generated Query: {query}"))
+
+                results = collection.aggregate(query)
+
+                print(f'{results} gotten')
+
                 found_results = False
                 for result in results:
                     found_results = True
@@ -64,4 +70,5 @@ else:
                 if not found_results:
                     st.write("No houses found that match your description.")
             except Exception as e:
-                logging.errror(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
+                st.error(f"An error occurred: {e}")
