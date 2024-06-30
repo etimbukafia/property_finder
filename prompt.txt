@@ -67,7 +67,8 @@ Use them wisely.
 
 sample_question: {sample}
 As an expert you must use them whenever required.
-Note: You have to just return the query nothing else. Don't return any additional text with the query. Follow this strictly
+Note: You have to just return the query nothing else. Don't return any additional text with the query. Also, let the values of the "city" field all be in lowercase, remember this while writing the queries. Follow this strictly.
+
 input:{question}
 output:
 """
