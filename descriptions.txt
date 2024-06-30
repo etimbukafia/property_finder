@@ -38,7 +38,7 @@ Question 4: I need a home with a view and a garage.
 Query:
 json
 [
-  { "$match": { "hasView": true, "hasGarage": true } },
+  { "$match": { "hasView": "True", "hasGarage": "True" } },
   { "$project": { "city": 1, "streetAddress": 1, "latestPrice": 1, "_id": 0 } }
 ]
 
@@ -68,16 +68,16 @@ Question 7: Find homes with a spa, cooling system, and parking spaces.
 Query:
 json
 [
-  { "$match": { "hasSpa": true, "hasCooling": true, "parkingSpaces":  { "$gte": 1 } } },
+  { "$match": { "hasSpa": "True", "hasCooling": "True", "parkingSpaces":  { "$gte": 1 } } },
   { "$project": { "city": 1, "streetAddress": 1, "latestPrice": 1, "_id": 0 } }
 ]
 
-Question 8: Find properties with more than 1 garage space and at least 2 stories.
+Question 8: Find properties with heating, more than 1 garage space and at least 2 stories.
 
 Query:
 json
 [
-  { "$match": { "garageSpaces":  { "$gt": 1 }, "numOfStories": { "$gte": 2 } } },
+  { "$match": { "hasHeating": "True", "garageSpaces":  { "$gt": 1 }, "numOfStories": { "$gte": 2 } } },
   { "$project": { "city": 1, "streetAddress": 1, "latestPrice": 1, "_id": 0 } }
 ]
 
@@ -86,7 +86,7 @@ Question 9: I need a house with an association fee and built before 2020.
 Query:
 json
 [
-  { "$match": { "hasAssociation": true, "yearBuilt": { "$lt": 2020 } } },
+  { "$match": { "hasAssociation": "True", "yearBuilt": { "$lt": 2020 } } },
   { "$project": { "city": 1, "streetAddress": 1, "latestPrice": 1, "_id": 0 } }
 ]
 
