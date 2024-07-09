@@ -1,74 +1,58 @@
-from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
-from utils import llm
-import streamlit as st
-import urllib,io,json
-from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-import re
+from db_connect import Database
+from fastapi import FastAPI, HTTPException
+import uvicorn
+from pydantic import ValidationError
+from models import SearchRequest, Data
+from ai import search_house
+from typing import List
 import logging
+import logging.config
+import yaml
+
+from dotenv import load_dotenv
 load_dotenv()
 
+# Load logging configuration
+with open('logging_config.yaml', 'r') as file:
+    config = yaml.safe_load(file.read())
+    logging.config.dictConfig(config)
 
-password = os.environ['PASSWORD']
-username = os.environ['USERNAME']
+logger = logging.getLogger('myapp')
 
-if not password or not username:
-    st.error("Environment variables for MongoDB credentials are not set.")
-else:
-    # MongoDB Client
+app = FastAPI()
+
+@app.on_event("startup")
+async def startup_db_client():
+    await Database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    await Database.close()
+
+
+@app.get('/listings', response_model=List[Data])
+async def read_listings() -> List[Data]:
+    collection = Database._collection
+    result = collection.find({})
+    result_list = await result.to_list(length=20)
+
     try:
-        client = MongoClient(f"mongodb+srv://{username}:{password}@realestatecluster.kypuqxb.mongodb.net/?retryWrites=true&w=majority&appName=realEstateCluster")
-        db = client['listings']
-        collection = db['austin_reduced']
-    except Exception as e:
-        st.error(f"Failed to connect to MongoDB: {e}")
-
-    st.title("Find you Dream House")
-    st.write("what kind of house are you looking for?")
-    user_input = st.text_area("enter your description here")
-
-
-    with io.open("descriptions.txt","r",encoding="utf-8")   as f1:
-        descriptions=f1.read()
-        print(descriptions)
+        datum = [Data(**data) for data in result_list]
+        return datum
+    except ValidationError as e:
+        logging.error(f"Validation error: {e}")
+        raise HTTPException(status_code=400, detail="Invalid data format")
     
 
-    with io.open("prompt.txt", "r", encoding="utf-8") as f:
-        prompt = f.read()
+@app.post('/search')
+async def search(request: SearchRequest): 
+    try:
+        result = await search_house(request.description)
+        return result
+    except Exception as e:
+        logging.error(f"Validation error: {e}")
+        raise HTTPException(status_code=500, detail= "An error occured, try again later")
 
-    query_with_prompt = PromptTemplate(
-        template=prompt,
-        input_variables=["question", "descriptions"]
-    )
-
-    llmchain = LLMChain(llm=llm, prompt=query_with_prompt, verbose=True)
-
-    if user_input:
-        if st.button("Submit"):
-            try:
-                # Invoke the LLM Chain
-                response = llmchain.invoke({
-                    "question": user_input,
-                    "sample": descriptions
-                })
-
-
-                query = json.loads(response["text"])
-                print((f"Generated Query: {query}"))
-
-                results = collection.aggregate(query)
-
-                print(f'{results} gotten')
-
-                found_results = False
-                for result in results:
-                    found_results = True
-                    st.write(result)
-                if not found_results:
-                    st.write("No houses found that match your description.")
-            except Exception as e:
-                logging.error(f"An error occurred: {e}")
-                st.error(f"An error occurred: {e}")
+if __name__ == "__main__":
+    uvicorn.run("main:app", port=5000, log_level="info")
