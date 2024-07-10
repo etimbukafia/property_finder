@@ -1,16 +1,16 @@
 from pydantic import BaseModel
-from typing import List, Any
+from typing import List, Any, Optional
 
 class SearchRequest(BaseModel):
     description: str
 
-class Data(BaseModel):
+class House(BaseModel):
     city: str
     streetAddress: str
-    livingAreaAqFt: float
+    livingAreaSqFt: float
     numOfBedrooms: int
     numOfBathrooms: float
-    homeImage: Any
+    homeImage: Optional[Any]
     homeType: str
     latestPrice: int
     description: str
