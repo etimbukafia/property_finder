@@ -2,7 +2,7 @@ from db_connect import Database
 from fastapi import FastAPI, HTTPException
 import uvicorn
 from pydantic import ValidationError
-from models import SearchRequest, Data
+from models import SearchRequest, House
 from ai import search_house
 from typing import List
 import logging
@@ -31,22 +31,23 @@ async def shutdown_db_client():
     await Database.close()
 
 
-@app.get('/listings', response_model=List[Data])
-async def read_listings() -> List[Data]:
+@app.get('/listings', response_model=List[House])
+async def read_listings() -> List[House]:
     collection = Database._collection
     result = collection.find({})
     result_list = await result.to_list(length=20)
 
     try:
-        datum = [Data(**data) for data in result_list]
+        datum = [House(**data) for data in result_list]
+        print(datum)
         return datum
     except ValidationError as e:
         logging.error(f"Validation error: {e}")
         raise HTTPException(status_code=400, detail="Invalid data format")
     
 
-@app.post('/search')
-async def search(request: SearchRequest): 
+@app.post('/search', response_model=dict)
+async def search(request: SearchRequest) -> dict: 
     try:
         result = await search_house(request.description)
         return result
