@@ -16,3 +16,6 @@ add_pictures.py
 
 # Images directory
 homeimages/
+
+# Virtual environment
+real/
