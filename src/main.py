@@ -56,7 +56,7 @@ async def read_listings() -> List[House]:
             data['_id'] = str(data['_id'])
             if 'image_id' in data:
                 data['image_id'] = str(data['image_id'])
-                data['homeImage'] = f"http://localhost:8000/images/{data['image_id']}"
+                data['homeImage'] = f"https://hardly-sound-ringtail.ngrok-free.app/images/{data['image_id']}"
             listings_with_images.append(House(**data))
         return listings_with_images
     except ValidationError as e:
@@ -91,4 +91,4 @@ async def search(request: SearchRequest) -> dict:
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=5000, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=80, log_level="info")
