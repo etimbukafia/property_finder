@@ -76,7 +76,7 @@ async def get_image(image_id: str):
         content.seek(0)
         return StreamingResponse(content, media_type="image/jpeg")
     except Exception as e:
-        logger.error(f"Error retrieving image: {e}")
+        logging.error(f"Error retrieving image: {e}")
         raise HTTPException(status_code=404, detail="Image not found")
 
 
