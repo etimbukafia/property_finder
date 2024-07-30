@@ -20,7 +20,7 @@ class Database:
             password = os.environ.get('PASSWORD')
             username = os.environ.get('USERNAME')
             try:
-                uri = f"mongodb+srv://ghostbandit02:dontlogmein@realestatecluster.kypuqxb.mongodb.net/?retryWrites=true&w=majority&appName=realEstateCluster"
+                uri = f"mongodb+srv://{username}:{password}@realestatecluster.kypuqxb.mongodb.net/?retryWrites=true&w=majority&appName=realEstateCluster"
                 print(f"Connecting to MongoDB with URI: {uri}")
                 db_name = "listings"
                 collection_name = "austin_reduced"
