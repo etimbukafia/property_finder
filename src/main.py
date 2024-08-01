@@ -79,15 +79,22 @@ async def get_image(image_id: str):
         logging.error(f"Error retrieving image: {e}")
         raise HTTPException(status_code=404, detail="Image not found")
 
-
+from sim_searchAI import similiarity_search
 @app.post('/search', response_model=dict)
 async def search(request: SearchRequest) -> dict: 
     try:
-        result = await search_house(request.description)
+        result = await similiarity_search(request.query)
         return result
     except Exception as e:
         logging.error(f"Validation error: {e}")
-        raise HTTPException(status_code=500, detail= "An error occured, try again later")
+        raise HTTPException(status_code=500, detail= "An error occured, try again later") 
+        
+    #try:
+        #result = await search_house(request.description)
+        #return result
+    #except Exception as e:
+        #logging.error(f"Validation error: {e}")
+        #raise HTTPException(status_code=500, detail= "An error occured, try again later")
 
 
 if __name__ == "__main__":
