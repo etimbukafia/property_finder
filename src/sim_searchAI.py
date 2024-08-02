@@ -8,8 +8,9 @@ from sentence_transformers import SentenceTransformer, util
 import logging
 import asyncio
 load_dotenv()
+from typing import List
 
-async def similiarity_search(query: str, fields: list):
+async def similiarity_search(query: str, fields: List[str] = ["city", "streetAddress", "latestPrice"]) -> List[dict]:
     model = SentenceTransformer('all-MiniLM-L6-v2')
     query_embedding = model.encode(query).tolist()
     collection = await Database.connect()
@@ -20,7 +21,6 @@ async def similiarity_search(query: str, fields: list):
 
         # Retrieve all documents and their embeddings
     try:
-
         docs_with_embeddings = []
         projection = {field: 1 for field in fields}
         projection['embedding'] = 1  # Ensure embedding field is included for similarity comparison
@@ -41,17 +41,8 @@ async def similiarity_search(query: str, fields: list):
 
         top_n = 5
         similar_docs = [doc for doc, sim in sorted_docs[:top_n]]
-
         return similar_docs
     
     except Exception as e:
         logging.error(f"Error while finding similar listings: {e}")
         return []
-
-
-if __name__ == "__main__":
-    query = "Show me all houses for sale in Pflugerville"
-    fields_to_return = ["city", "streetAddress", "latestPrice"]  # Specify the fields you want to return
-    similar_listings = asyncio.run(similiarity_search(query, fields_to_return))
-    for listing in similar_listings:
-        print(listing)
