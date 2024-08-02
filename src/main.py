@@ -3,8 +3,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 import uvicorn
 from pydantic import ValidationError
-from models import SearchRequest, House
-from ai import search_house
+from models import *
+#from ai import search_house
+from sim_searchAI import similiarity_search
 from typing import List
 import logging
 import logging.config
@@ -79,15 +80,32 @@ async def get_image(image_id: str):
         logging.error(f"Error retrieving image: {e}")
         raise HTTPException(status_code=404, detail="Image not found")
 
-from sim_searchAI import similiarity_search
-@app.post('/search', response_model=dict)
-async def search(request: SearchRequest) -> dict: 
+@app.post('/search', response_model=SearchResponse)
+async def search(request: SearchRequest) -> SearchResponse: 
     try:
-        result = await similiarity_search(request.query)
-        return result
+        # Extract the query from the request
+        query = request.query
+
+        # Set default fields to return
+        fields_to_return = ["city", "streetAddress", "latestPrice"]
+
+        similar_listings = await similiarity_search(query, fields_to_return)
+
+        # Prepare the response
+        response = SearchResponse(
+            listings=[Listing(
+                id=str(doc['_id']),
+                city=doc.get('city', ''),
+                streetAddress=doc.get('streetAddress', ''),
+                latestPrice=doc.get('latestPrice', 0.0)
+            ) for doc in similar_listings]
+        )
+
+        return response
+    
     except Exception as e:
         logging.error(f"Validation error: {e}")
-        raise HTTPException(status_code=500, detail= "An error occured, try again later") 
+        raise HTTPException(status_code=400, detail="Invalid request payload")
         
     #try:
         #result = await search_house(request.description)
