@@ -13,16 +13,21 @@ import yaml
 from io import BytesIO
 from bson import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
+from cProfile import Profile
+from pstats import SortKey, Stats
+
 
 from dotenv import load_dotenv
 load_dotenv()
 
 # Load logging configuration
 with open('logging_config.yaml', 'r') as file:
-    config = yaml.safe_load(file.read())
+    config = yaml.safe_load(file)
     logging.config.dictConfig(config)
 
-logger = logging.getLogger('myapp')
+# Define the loggers
+app_logger = logging.getLogger('app_logger')
+debug_logger = logging.getLogger('debug_logger')
 
 app = FastAPI()
 
@@ -61,7 +66,7 @@ async def read_listings() -> List[House]:
             listings_with_images.append(House(**data))
         return listings_with_images
     except ValidationError as e:
-        logger.error(f"Validation error: {e}")
+        app_logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=400, detail="Invalid data format")
 
 # Endpoint to serve images
@@ -80,32 +85,44 @@ async def get_image(image_id: str):
         logging.error(f"Error retrieving image: {e}")
         raise HTTPException(status_code=404, detail="Image not found")
 
+# Define the endpoint for searching, which accepts a POST request and returns a SearchResponse
 @app.post('/search', response_model=SearchResponse)
 async def search(request: SearchRequest) -> SearchResponse: 
-    try:
-        # Extract the query from the request
-        query = request.query
+    with Profile() as profile:
+        try:
+            # Extract the query string from the incoming request
+            query = request.query
+            #debug_logger.debug(f"Query: {query}")
 
-        # Set default fields to return
-        fields_to_return = ["city", "streetAddress", "latestPrice"]
+            # Define the fields that will be returned in the search results
+            fields_to_return = ["city", "streetAddress", "latestPrice"]
 
-        similar_listings = await similiarity_search(query, fields_to_return)
+            similar_listings = await similiarity_search(query, fields_to_return)
 
-        # Prepare the response
-        response = SearchResponse(
-            listings=[Listing(
-                id=str(doc['_id']),
-                city=doc.get('city', ''),
-                streetAddress=doc.get('streetAddress', ''),
-                latestPrice=doc.get('latestPrice', 0.0)
-            ) for doc in similar_listings]
-        )
+            # Prepare the response object by populating it with the similar listings
+            response = SearchResponse(
+                listings=[Listing(
+                    id=str(doc['_id']), # Convert the document ID to a string
+                    city=doc.get('city', ''), # Get the city from the document, or an empty string if not present
+                    streetAddress=doc.get('streetAddress', ''), # Get the street address from the document, or an empty string if not present
+                    latestPrice=doc.get('latestPrice', 0.0) # Get the latest price from the document, or 0.0 if not present
+                ) for doc in similar_listings] # Iterate over each similar listing to create a Listing object
+            )
 
-        return response
-    
-    except Exception as e:
-        logging.error(f"Validation error: {e}")
-        raise HTTPException(status_code=400, detail="Invalid request payload")
+            # Dump the profile data to a file
+            profile.dump_stats('profile_data.prof')
+
+            #Print profiling stats
+            with open('profile_stats.txt', 'w') as f:
+                stats = Stats('profile_data.prof', stream=f)
+                stats.strip_dirs().sort_stats(SortKey.CALLS).print_stats()
+
+            return response
+        
+        except Exception as e:
+            app_logger.error(f"Error in search endpoint: {e}")
+            return SearchResponse(listings=[])
+        
         
     #try:
         #result = await search_house(request.description)
