@@ -19,3 +19,12 @@ homeimages/
 
 # Virtual environment
 real/
+
+#txt files
+prompt.txt
+descriptions.txt
+
+#test outputs
+profile_stats.txt
+profile_data.prof
+debug_output.txt
