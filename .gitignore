@@ -21,8 +21,8 @@ homeimages/
 real/
 
 #txt files
-prompt.txt
-descriptions.txt
+src/prompt.txt
+src/descriptions.txt
 
 #test outputs
 profile_stats.txt
