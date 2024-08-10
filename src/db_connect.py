@@ -22,16 +22,21 @@ class Database:
             try:
                 uri = f"mongodb+srv://{username}:{password}@realestatecluster.kypuqxb.mongodb.net/?retryWrites=true&w=majority&appName=realEstateCluster"
                 print(f"Connecting to MongoDB with URI: {uri}")
+
                 db_name = "listings"
                 collection_name = "austin_reduced"
-                cls._client = AsyncIOMotorClient(uri)
+
+                cls._client = AsyncIOMotorClient(uri,  maxPoolSize=50)
                 cls._db = cls._client[db_name]
                 cls._collection = cls._db[collection_name]
                 cls._fs = GridFS(MongoClient(uri)['listings'])
                 logger.info("Connected to MongoDB")
-            except Exception as e:
+            except ConnectionError as e:
                 logger.error(f"Failed to connect to MongoDB: {e}")
-                raise ConnectionError(f"Failed to connect to MongoDB: {e}")
+                raise
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                raise
         return cls._collection
     
     @classmethod

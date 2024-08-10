@@ -1,13 +1,22 @@
 from dotenv import load_dotenv
 from db_connect import Database
-from sentence_transformers import SentenceTransformer, util
 import logging
 load_dotenv()
 from typing import List
+#from mistralai.client import MistralClient
+from sentence_transformers import SentenceTransformer, util
 
 # Define the loggers
 app_logger = logging.getLogger('app_logger')
 debug_logger = logging.getLogger('debug_logger')
+
+model = None
+
+async def load_model():
+    global model # ensures that the global model variable is updated with the loaded SentenceTransformer instance, and this instance is accessible throughout the program.
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    logging.info("Model loaded successfully")
+
 
 async def similiarity_search(query: str, fields: List[str] = ["city", "streetAddress", "latestPrice"]) -> List[dict]:
     """
@@ -18,14 +27,26 @@ async def similiarity_search(query: str, fields: List[str] = ["city", "streetAdd
         fields (List[str], optional): List of fields to be included in the result. Defaults to ["city", "streetAddress", "latestPrice"].
     
     Returns:
-        List[dict]: A list of dictionaries representing the top similar documents.
-    """
-    # Initialize the sentence transformer model for encoding the query
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+        List[dict]: A list of dictionaries representing the top similar documents."""
+    
+    global model
+    if model is None:
+        await load_model()
 
-    # Encode the query into an embedding vector
+    #client = MistralClient(api_key="zxEthFKy97XUYXSHj4oMJGOjNBqIaklj")
 
+    #embedding_response = client.embeddings(
+    #model="mistral-embed",
+    #input=[query])
+
+    #embedding_object = embedding_response.data[0]
+
+    #query_embedding = embedding_object.embedding
+
+    #Encode the query into an embedding vector
+    app_logger.info("embedding query")
     query_embedding = model.encode(query).tolist()
+    app_logger.info("query embedded")
     #debug_logger.debug(f"Query embedding for '{query}': {query_embedding}")
 
      # Connect to the database

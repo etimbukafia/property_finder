@@ -5,7 +5,7 @@ import uvicorn
 from pydantic import ValidationError
 from models import *
 #from ai import search_house
-from sim_searchAI import similiarity_search
+from sim_searchAI import similiarity_search, load_model
 from typing import List
 import logging
 import logging.config
@@ -13,9 +13,9 @@ import yaml
 from io import BytesIO
 from bson import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
+
 from cProfile import Profile
 from pstats import SortKey, Stats
-
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -43,6 +43,9 @@ app.add_middleware(
 async def startup_db_client():
     await Database.connect()
 
+@app.on_event("startup")
+async def startup_load_model():
+    await load_model()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
@@ -66,6 +69,7 @@ async def read_listings() -> List[House]:
             listings_with_images.append(House(**data))
         return listings_with_images
     except ValidationError as e:
+        app_logger.error(f"Validation error: {e}")
         app_logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=400, detail="Invalid data format")
 
