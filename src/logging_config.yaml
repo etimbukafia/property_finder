@@ -12,18 +12,29 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 
-  file:
+  app_file_handler:
     class: logging.FileHandler
-    level: DEBUG
+    level: INFO
     formatter: standard
     filename: app.log
 
-loggers:
-  myapp:
+  debug_file_handler:
+    class: logging.FileHandler
     level: DEBUG
-    handlers: [console, file]
+    formatter: standard
+    filename: debug_output.txt
+
+loggers:
+  app_logger:
+    level: INFO
+    handlers: [console, app_file_handler]
+    propagate: no
+
+  debug_logger:
+    level: DEBUG
+    handlers: [debug_file_handler]
     propagate: no
 
 root:
   level: DEBUG
-  handlers: [console, file]
+  handlers: [console]
