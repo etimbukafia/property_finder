@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field 
 """#The Field method in Pydantic is used to provide additional metadata and validation to the fields of a Pydantic model. 
 It allows you to specify things like default values, aliases, constraints (e.g., min/max length, regex patterns), descriptions, and examples, among other options."""
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 from bson import ObjectId
 
 #class SearchRequest(BaseModel):
@@ -23,13 +23,14 @@ class House(BaseModel):
     description: str
 
 class Listing(BaseModel):
+    """Represents a single listing with fields for ID, city, street address, and latest price."""
     id: str
     city: str
     streetAddress: str
     latestPrice: float
 
     class Config:
-        # This allows Pydantic to serialize the MongoDB ObjectId to a string
+        """allows Pydantic to handle MongoDB's ObjectId correctly by converting it to a string, which is useful for serializing responses."""
         json_encoders = {
             ObjectId: str
         }
