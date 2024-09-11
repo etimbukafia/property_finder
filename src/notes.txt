@@ -1,8 +1,0 @@
-1. Query expansion with COT
-2. Hybrid approach
-3. BM25 + Quey expansion
-4. try different distance metric
-5. Contextual Compression
-6. MultiQuery retriever
-7. research more on pagination, indexing, dynamic filtering, dynamic listings, and FastApi
-8. Improve logging
