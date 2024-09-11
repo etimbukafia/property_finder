@@ -3,6 +3,8 @@ import os
 from gridfs import GridFS
 from pymongo import MongoClient
 import logging
+from dotenv import load_dotenv
+load_dotenv()
 
 #Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,10 +19,8 @@ class Database:
     @classmethod
     async def connect(cls):
         if cls._client is None:
-            password = os.environ.get('PASSWORD')
-            username = os.environ.get('USERNAME')
             try:
-                uri = f"mongodb+srv://{username}:{password}@realestatecluster.kypuqxb.mongodb.net/?retryWrites=true&w=majority&appName=realEstateCluster"
+                uri = os.environ.get("MONGO_URI")
                 print(f"Connecting to MongoDB with URI: {uri}")
 
                 db_name = "listings"
