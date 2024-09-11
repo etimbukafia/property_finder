@@ -13,6 +13,10 @@ db2.py
 db.py
 app.py
 add_pictures.py
+src/ai.py
+src/query_processor.py
+src/test.ipynb
+src/utils.py
 
 # Images directory
 homeimages/
