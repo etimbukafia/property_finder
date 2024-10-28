@@ -9,14 +9,9 @@ __pycache__/
 *.log
 
 # Local database or Python files (if you don't want to track these)
-db2.py
-db.py
-app.py
-add_pictures.py
-src/ai.py
-src/query_processor.py
-src/test.ipynb
-src/utils.py
+src/unused/
+src/utility/
+utility/
 
 # Images directory
 homeimages/

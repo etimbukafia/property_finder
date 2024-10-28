@@ -21,7 +21,7 @@ class Database:
         if cls._client is None:
             try:
                 uri = os.environ.get("MONGO_URI")
-                print(f"Connecting to MongoDB with URI: {uri}")
+                print("Connecting to MongoDB with URI")
 
                 db_name = "listings"
                 collection_name = "austin_reduced"
