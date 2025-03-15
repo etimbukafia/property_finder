@@ -1,4 +1,4 @@
-# AI Property Search Tool
+# AI Real Estate Property Search Tool
 
 ## Overview
 
